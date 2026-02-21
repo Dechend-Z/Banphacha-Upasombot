@@ -1,0 +1,302 @@
+
+You are an expert frontend engineer and UX designer. Build a complete, mobile-first, frontend-only PWA web app for learning ordination chants in Thailand. The app must separate by Nikaya and Ordination Type, show Thai phonetic reading (คำอ่านไทย) distinctly from meaning, and display a “Random Dhamma Tip” every load/refresh. No login, no scoring, no recording.
+
+CRITICAL CONTENT RULES
+- Do NOT fetch or copy chant text from external websites.
+- Use ONLY the local JSON files under /data that the user provides (extracted from the user's PDFs). If any verse is missing text, keep placeholders.
+- Each verse supports: Pāli text, Thai phonetic reading (thai_reading), Romanization, and Thai meaning (thai).
+
+==============================
+ PRODUCT SCOPE & NAV FLOW
+==============================
+Flow:
+1) Home (index.html) → Choose Nikaya:
+   - มหานิกาย (Mahanikaya)
+   - ธรรมยุต (Dhammayut)
+
+2) Choose Type (choose-type.html) → 
+   - บวชพระภิกษุ (Monk)
+   - บวชสามเณร (Novice)
+
+3) Lessons list (lessons.html) for the chosen Nikaya × Type → open a lesson.
+
+4) Lesson view (lesson.html):
+   - Renders a vertical list of verse “cards”.
+   - Each verse shows (toggleable): Pāli / Thai Reading / Romanization / Thai Meaning.
+   - Audio controls: [▶ Play] [🐢 Slow] using HTMLAudioElement (playbackRate: 1.0× / 0.85× / 0.75×).
+   - Repeat-after-me: Play current verse → pause X seconds (default 4s, options: 2/4/6/8) → auto-next; provide Prev/Next buttons and a “Loop this verse” toggle.
+   - No mic access, no STT, no scoring.
+
+Accessibility:
+- Big touch targets, WCAG AA contrast, keyboard shortcuts (Space = play/pause, ←/→ = prev/next).
+
+==============================
+ DATA ORGANIZATION
+==============================
+All content is static JSON under /data:
+- /data/paths.json
+- /data/mahanikai/monk/lessons.json
+- /data/mahanikai/novice/lessons.json
+- /data/dhammayut/monk/lessons.json
+- /data/dhammayut/novice/lessons.json
+- One JSON per lesson, e.g.:
+  /data/mahanikai/monk/ukasah.json
+  /data/mahanikai/novice/ukasah.json
+  /data/dhammayut/monk/esahang.json
+  /data/dhammayut/novice/esahang.json
+- /data/dhamma_quotes.json (Random Dhamma Tip; see content below)
+
+All audio files live under:
+/audio/<nikaya>/<type>/<nnn>.mp3 and <nnn>_slow.mp3
+Handle missing audio gracefully (disable button + tooltip “ไม่พบไฟล์เสียง”).
+
+==============================
+ JSON SCHEMAS (CONTRACTS)
+==============================
+/data/paths.json
+[
+  { "path": "mahanikai", "title_th": "มหานิกาย", "description": "โครงบทสวดและลำดับพิธีแบบมหานิกาย" },
+  { "path": "dhammayut", "title_th": "ธรรมยุต", "description": "โครงบทสวดและลำดับพิธีแบบธรรมยุต" }
+]
+
+/data/<nikaya>/<type>/lessons.json
+[
+  {
+    "code": "ukasah",      "title_th": "อุกาสะ (ขอ/ขอบวช)",  "reference": "USER_PROVIDED_PDF"
+  },
+  {
+    "code": "kammavaca",   "title_th": "ลำดับกรรมวาจา",       "reference": ""
+  },
+  {
+    "code": "ten_precepts","title_th": "ศีล ๑๐ (สำหรับสามเณร)","reference": ""
+  }
+]
+
+A lesson file (example: /data/dhammayut/monk/esahang.json)
+{
+  "title": "เอสาหัง (โครงสำหรับบวชพระภิกษุ – ธรรมยุต)",
+  "reference": "USER_PROVIDED_PDF",
+  "notes": [
+    "Filled from user’s PDF; keep placeholders if any field not provided."
+  ],
+  "verses": [
+    {
+      "order": 1,
+      "section": "คำขานนาค (เอสาหัง)",
+      "pali": "{PALI_VERSE_01}",
+      "thai_reading": "ใส่คำอ่านไทยจากไฟล์ผู้ใช้",
+      "roman": "{ROMAN_01}",
+      "thai": "{THAI_MEANING_01}",
+      "audio": "/audio/dhammayut/monk/001.mp3",
+      "audio_slow": "/audio/dhammayut/monk/001_slow.mp3"
+    }
+  ]
+}
+
+==============================
+ UI / UX REQUIREMENTS
+==============================
+- Thai-friendly typography, mobile-first layout, breadcrumb: Nikaya → Type → Lesson.
+- Lesson toggles (persist in localStorage):
+  [บาลี] [คำอ่านไทย] [โรมัน] [ความหมายไทย]
+  Defaults: ON = Pāli + Thai Reading; OFF = Roman + Thai Meaning.
+- Font size: Small / Medium / Large (persist).
+- Theme: Light / Dark (persist).
+- Lessons list: searchable by Thai title.
+
+Repeat-after-me details:
+- Controls: Start / Stop / Prev / Next / Loop.
+- Pause setting: selectable 2 / 4 / 6 / 8 seconds (default 4).
+
+==============================
+ RANDOM DHAMMA TIP
+==============================
+- Show a random “ข้อคิดในพระพุทธศาสนา” banner/card under the header on every main page (index, choose-type, lessons, lesson) on each load/refresh.
+- Provide a small “สุ่มใหม่” button to re-roll without reloading.
+- Use /data/dhamma_quotes.json; precache it via service worker.
+- Avoid showing the same quote twice in a row in the same session using sessionStorage.
+
+Data file: /data/dhamma_quotes.json (exact content to generate)
+[
+  { "id": "q1",  "th": "ใจสงบ ไม่ได้แปลว่าโลกเงียบ แต่แปลว่าเรารู้เท่าทันใจตน", "tags": ["สติ","ภาวนา"] },
+  { "id": "q2",  "th": "ความดีเล็ก ๆ ที่ทำทุกวัน แข็งแรงกว่าความตั้งใจครั้งใหญ่ที่ไม่เริ่มเสียที", "tags": ["เพียร","ศีล"] },
+  { "id": "q3",  "th": "ยอมรับความไม่เที่ยง ใจจะเบาและกว้างขึ้น", "tags": ["อนิจจัง"] },
+  { "id": "q4",  "th": "พูดให้น้อย แต่เพิ่มความใส่ใจในทุกคำ", "tags": ["วาจาชอบ"] },
+  { "id": "q5",  "th": "เมตตาเริ่มที่ตนเอง แล้วส่งต่อโดยไม่ต้องเอ่ยคำ", "tags": ["เมตตา"] },
+  { "id": "q6",  "th": "รู้สึกตัวเมื่อเผลอ คือชัยชนะเล็ก ๆ ที่นำไปสู่ความเปลี่ยนแปลงใหญ่", "tags": ["สติ"] },
+  { "id": "q7",  "th": "ปล่อยวางไม่ใช่แพ้ แต่คือวางสิ่งที่หนักเกินจำเป็น", "tags": ["วางเฉย"] },
+  { "id": "q8",  "th": "ความเงียบที่มีสติ เต็มไปด้วยปัญญา", "tags": ["สมถะ","ปัญญา"] },
+  { "id": "q9",  "th": "อารมณ์มาแล้วก็ไป อย่ารีบเป็นเจ้าของมัน", "tags": ["อนัตตา","สติ"] },
+  { "id": "q10", "th": "เห็นความคิดเป็นเพียงความคิด ใจก็ไม่ถูกลากไปไกล", "tags": ["ภาวนา"] },
+  { "id": "q11", "th": "ศีลไม่ใช่กรอบคับแคบ แต่คือพื้นที่ปลอดภัยให้ใจเติบโต", "tags": ["ศีล"] },
+  { "id": "q12", "th": "ทุกลมหายใจคือโอกาสเริ่มต้นใหม่", "tags": ["สติ","เริ่มต้นใหม่"] },
+  { "id": "q13", "th": "ฟังผู้อื่นให้จบ เหมือนฟังใจตนให้ชัด", "tags": ["เมตตา","ปัญญา"] },
+  { "id": "q14", "th": "หมั่นทำดีอย่างเงียบ ๆ ผลจะดังเองเมื่อถึงเวลา", "tags": ["เพียร"] },
+  { "id": "q15", "th": "ไม่เติมเชื้อให้ความโกรธ กองไฟก็สงบเอง", "tags": ["เมตตา","ขันติ"] },
+  { "id": "q16", "th": "งานยากที่สุดคือดูแลใจในวันที่ไม่ง่าย", "tags": ["เพียร","สติ"] },
+  { "id": "q17", "th": "สุขที่แท้ไม่ต้องอวด เพราะคนได้สัมผัสคือผู้ถือมันอยู่", "tags": ["ปัญญา"] },
+  { "id": "q18", "th": "รู้ขอบเขตของคำพูด ทำให้ความสัมพันธ์ปลอดภัย", "tags": ["วาจาชอบ"] },
+  { "id": "q19", "th": "หัดขอบคุณสิ่งเล็ก ๆ ใจจะใหญ่พอรับทุกอย่าง", "tags": ["กตัญญู","เมตตา"] },
+  { "id": "q20", "th": "เผชิญความจริงด้วยใจอ่อนโยน คือความกล้ารูปแบบหนึ่ง", "tags": ["ปัญญา","ขันติ"] },
+  { "id": "q21", "th": "คิดดี พูดดี ทำดี—ทำบ่อย ๆ จนกลายเป็นนิสัย", "tags": ["อริยมรรค","ศีล"] },
+  { "id": "q22", "th": "ยิ้มให้ความผิดพลาด แล้วเรียนรู้จากมัน", "tags": ["ปัญญา","เพียร"] },
+  { "id": "q23", "th": "อย่ารอวันที่พร้อมที่สุด จงเริ่มวันที่ตั้งใจที่สุด", "tags": ["เพียร"] },
+  { "id": "q24", "th": "เปลี่ยนมุมมองเล็กน้อย โลกก็เปลี่ยนไปมาก", "tags": ["ปัญญา"] },
+  { "id": "q25", "th": "ใจที่ให้ ยิ่งให้ยิ่งเต็ม", "tags": ["ทาน","เมตตา"] },
+  { "id": "q26", "th": "หยุดดูใจตนหนึ่งอึดใจ ดีกว่าตามใจไปทั้งวัน", "tags": ["สติ"] },
+  { "id": "q27", "th": "เว้นคำพูดที่ทำร้าย แม้จะได้ระบาย แต่ใจจะขุ่นนาน", "tags": ["วาจาชอบ"] },
+  { "id": "q28", "th": "ความสุขเรียบง่าย มักอยู่ในสิ่งที่เรามองข้าม", "tags": ["สติ","พอเพียง"] },
+  { "id": "q29", "th": "พร้อมขอโทษเมื่อผิด พร้อมให้อภัยเมื่อถูกทำร้าย", "tags": ["เมตตา","ขันติ"] },
+  { "id": "q30", "th": "รู้ว่าเพียงพอ ใจจะไม่เหนื่อยไล่ตาม", "tags": ["พอเพียง"] },
+  { "id": "q31", "th": "ความเงียบที่อบอุ่น เกิดจากคนซื่อสัตย์ต่อกัน", "tags": ["สัจจะ","เมตตา"] },
+  { "id": "q32", "th": "ไม่ใช่ทุกคำชวนให้โต้ตอบ บางคำชวนให้วางเฉย", "tags": ["วางเฉย","ปัญญา"] },
+  { "id": "q33", "th": "ฝึกใจให้หยุดก่อนตอบ คือของขวัญกับทั้งสองฝ่าย", "tags": ["สติ","วาจาชอบ"] },
+  { "id": "q34", "th": "ยอมอ่อนโยนต่อความไม่สมบูรณ์ของตนเองด้วย", "tags": ["เมตตา","กรุณา"] },
+  { "id": "q35", "th": "ความแน่นอนคือความไม่แน่นอน จึงฝึกใจให้ยืดหยุ่น", "tags": ["อนิจจัง","ปัญญา"] },
+  { "id": "q36", "th": "ใจที่มั่นคง มาจากการซื่อสัตย์ต่อคุณค่าที่เชื่อถือ", "tags": ["ศีล","สัจจะ"] },
+  { "id": "q37", "th": "หยดน้ำความดีสะสมกันเป็นแม่น้ำแห่งความไว้วางใจ", "tags": ["ทาน","ศีล"] },
+  { "id": "q38", "th": "ลดตัดสิน เพิ่มรับฟัง ความเข้าใจจะเกิดขึ้นเอง", "tags": ["ปัญญา","เมตตา"] },
+  { "id": "q39", "th": "ตั้งสติในเรื่องง่าย ๆ ก่อน แล้วค่อยไปเรื่องยาก", "tags": ["สติ","ภาวนา"] },
+  { "id": "q40", "th": "ทำวันนี้ให้ดีพอ พรุ่งนี้จะเบาลงเอง", "tags": ["เพียร","สติ"] }
+]
+
+Behavior (JS hint):
+- On DOMContentLoaded, fetch /data/dhamma_quotes.json (from cache), pick a random quote; keep last id in sessionStorage to avoid immediate repeat. Provide a “สุ่มใหม่” button.
+
+==============================
+ FILE / FOLDER STRUCTURE
+==============================
+/
+  index.html                 # Choose Nikaya
+  choose-type.html           # Choose Monk / Novice
+  lessons.html               # List lessons for chosen path
+  lesson.html                # Verse view + repeat-after-me
+  styles.css                 # Golden–brown theme (see Style Guide below)
+  app.js                     # Global state (nikaya/type/theme/font/toggles) + random tip init
+  choose-type.js             # Persist ordination type + random tip init
+  lessons.js                 # Load lessons.json + search + random tip init
+  lesson.js                  # Load lesson JSON + audio, toggles, RaM logic + random tip init
+  /assets/icons/             # PWA icons 192/512/maskable
+  /pwa/
+    manifest.json
+    service-worker.js
+  /data/
+    paths.json
+    /mahanikai/
+      /monk/     lessons.json  ukasah.json   kammavaca.json
+      /novice/   lessons.json  ukasah.json   ten_precepts.json
+    /dhammayut/
+      /monk/     lessons.json  esahang.json  kammavaca.json
+      /novice/   lessons.json  esahang.json  ten_precepts.json
+    dhamma_quotes.json
+  /audio/
+    /mahanikai/monk/   001.mp3 001_slow.mp3 ...
+    /mahanikai/novice/ …
+    /dhammayut/monk/   …
+    /dhammayut/novice/ …
+
+Notes:
+- If audio file missing, disable button & show a small helper text.
+
+==============================
+ STYLE GUIDE (GOLDEN–BROWN THEME)
+==============================
+Implement styles.css with CSS variables and components:
+
+:root {
+  --bg: #FFF9F0;
+  --card: #FBF7EF;
+  --text: #3B2E11;
+  --muted: #6E5B2A;
+  --accent: #8B6B2E;     /* golden-brown */
+  --accent-2: #C49A3D;   /* lighter gold */
+  --border: #E8DDBF;
+}
+
+[data-theme="dark"] {
+  --bg: #1E1A14;
+  --card: #2A241B;
+  --text: #F3E8D0;
+  --muted: #D7C19A;
+  --accent: #C49A3D;
+  --accent-2: #E6C46B;
+  --border: #64583B;
+}
+
+body { background: var(--bg); color: var(--text); font-family: "Noto Sans Thai", "Sarabun", system-ui, sans-serif; }
+.header { padding: 12px 16px; display:flex; gap:12px; align-items:center; border-bottom:1px solid var(--border); }
+.card {
+  background: var(--card); border:1px solid var(--border); border-radius:12px;
+  padding:14px 16px; box-shadow:0 1px 4px rgba(0,0,0,0.04);
+}
+.card-title { font-weight:700; color:var(--text); margin-bottom:6px; }
+.card-subtle { color:var(--muted); font-size:0.95rem; }
+.btn {
+  background: var(--accent); color:#fff; border:none; border-radius:10px;
+  padding:10px 14px; font-weight:600; cursor:pointer;
+}
+.btn-secondary {
+  background: transparent; color: var(--accent); border:1px solid var(--accent);
+  border-radius:10px; padding:8px 12px; font-weight:600;
+}
+.toggle-chip {
+  display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:999px;
+  border:1px solid var(--border); background:var(--card); color:var(--text); cursor:pointer;
+}
+.tip-card {
+  margin:12px 16px; padding:12px 14px; border-radius:12px; background:var(--card); color:var(--text);
+  border:1px solid var(--border); display:flex; justify-content:space-between; gap:8px; align-items:flex-start;
+}
+.tip-card .actions .link {
+  background:transparent; border:none; color:var(--accent); text-decoration:underline; cursor:pointer; padding:2px 4px;
+}
+
+==============================
+ PWA REQUIREMENTS
+==============================
+- manifest.json:
+  name: "เรียนสวดบวช – มหานิกาย/ธรรมยุต"
+  short_name: "สวดบวช"
+  theme_color: "#8B6B2E"
+  icons: 192x192, 512x512, maskable
+
+- service-worker.js:
+  PRECACHE (at install): 
+    '/', '/index.html', '/choose-type.html', '/lessons.html', '/lesson.html',
+    '/styles.css', '/app.js', '/choose-type.js', '/lessons.js', '/lesson.js',
+    '/data/paths.json', '/data/dhamma_quotes.json',
+    all '/data/*/lessons.json' and at least one sample lesson JSON per path.
+  Runtime cache: audio/*.mp3 (CacheFirst).
+  Provide a function “Download this lesson for offline” to precache the current lesson’s audio listed in its JSON.
+  Update flow: postMessage client → show “มีเวอร์ชันใหม่” toast → on confirm, skipWaiting() and reload.
+
+==============================
+ IMPLEMENTATION HINTS
+==============================
+- State persistence via localStorage for nikaya/type/theme/font/toggles.
+- Build simple client-side router or use query params (?code=...).
+- Random Dhamma Tip helper (pseudo):
+  onDOMContentLoaded:
+    quotes = fetch('/data/dhamma_quotes.json', { cache:'no-cache' }).json()
+    lastId = sessionStorage.getItem('last_tip_id')
+    pick random q != lastId
+    render q + a “สุ่มใหม่” button
+    sessionStorage.setItem('last_tip_id', q.id)
+
+==============================
+ ACCEPTANCE CRITERIA
+==============================
+- Users can choose Nikaya → Type → see lessons list from /data/<nikaya>/<type>/lessons.json.
+- Lesson page renders verse cards with four toggleable fields:
+  Pāli / Thai Reading / Roman / Thai Meaning (defaults ON = Pāli + Thai Reading).
+- Repeat-after-me works: play → pause (default 4s; 2/4/6/8 options) → auto-next; prev/next; loop current verse.
+- Settings persist across sessions (toggles, font size, theme).
+- Random Dhamma Tip shows on each load/refresh with “สุ่มใหม่”; no immediate repetition in-session.
+- PWA installable; offline works for precached core and any lesson the user saves.
+- No login, no scoring, no recording; chant text only from local /data JSON (user-provided).
+
+==============================
+ NOTES ON CONTENT
+==============================
+- The app must not fetch or copy chant text from external sites. Chant data is supplied via JSON (extracted from the user's PDFs). If any verse is not supplied, use placeholders and clear comments.
+- Editors can refine “thai_reading” to match local chanting style and nikaya-specific delivery.

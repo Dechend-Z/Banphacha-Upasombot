@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="th" data-theme="light" data-font="medium">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="ฝึกสวดบทบวช – แสดงบาลี คำอ่านไทย และความหมาย พร้อมวิดีโอประกอบ">
+    <meta name="theme-color" content="#8B6B2E">
+    <title>บทสวด – บรรพชาอุปสมบท</title>
+    <link rel="manifest" href="pwa/manifest.json">
+    <link rel="icon" type="image/svg+xml" href="assets/icons/icon-192.svg">
+    <link rel="apple-touch-icon" href="assets/icons/icon-192.svg">
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+    <!-- Header -->
+    <header class="header">
+        <a href="index.html" class="header-logo">
+            <span class="logo-icon">📿</span>
+            <span>บรรพชาอุปสมบท</span>
+        </a>
+        <div class="header-spacer"></div>
+        <div class="header-actions">
+            <div class="font-size-group">
+                <button class="font-btn btn-sm" data-size="small" title="อักษรเล็ก">เล็ก</button>
+                <button class="font-btn btn-sm" data-size="medium" title="อักษรกลาง">กลาง</button>
+                <button class="font-btn btn-sm" data-size="large" title="อักษรใหญ่">ใหญ่</button>
+            </div>
+            <button class="btn-icon" id="theme-toggle" title="สลับธีม">🌙</button>
+        </div>
+    </header>
+
+    <!-- Breadcrumb -->
+    <nav class="breadcrumb" id="breadcrumb"></nav>
+
+    <!-- Dhamma Tip -->
+    <div id="dhamma-tip"></div>
+
+    <!-- Page Content -->
+    <div class="container">
+        <div class="page-title">
+            <h1 id="lesson-title">กำลังโหลด...</h1>
+        </div>
+
+        <!-- Toggle Bar -->
+        <div class="toggle-bar" id="toggle-bar"></div>
+
+        <!-- YouTube Video -->
+        <div id="youtube-container"
+            style="display: none; margin-bottom: 20px; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+            <div id="youtube-player" style="width: 100%; aspect-ratio: 16/9;"></div>
+        </div>
+
+        <!-- Verse List -->
+        <div class="verse-list" id="verse-list">
+            <div class="skeleton" style="height:120px; margin-bottom:12px;"></div>
+            <div class="skeleton" style="height:120px; margin-bottom:12px;"></div>
+            <div class="skeleton" style="height:120px;"></div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script src="lesson.js"></script>
+</body>
+
+</html>

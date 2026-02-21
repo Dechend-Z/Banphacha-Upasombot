@@ -1,0 +1,29 @@
+{
+    "name": "เรียนสวดบวช – มหานิกาย/ธรรมยุต",
+    "short_name": "สวดบวช",
+    "description": "แอปเรียนสวดบทบวชพระภิกษุและสามเณร แบบมหานิกายและธรรมยุต",
+    "start_url": "/index.html",
+    "display": "standalone",
+    "orientation": "portrait-primary",
+    "theme_color": "#8B6B2E",
+    "background_color": "#FFF9F0",
+    "lang": "th",
+    "icons": [
+        {
+            "src": "/assets/icons/icon-192.svg",
+            "sizes": "192x192",
+            "type": "image/svg+xml"
+        },
+        {
+            "src": "/assets/icons/icon-512.svg",
+            "sizes": "512x512",
+            "type": "image/svg+xml"
+        },
+        {
+            "src": "/assets/icons/icon-512.svg",
+            "sizes": "512x512",
+            "type": "image/svg+xml",
+            "purpose": "maskable"
+        }
+    ]
+}

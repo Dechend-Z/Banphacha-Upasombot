@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="th" data-theme="light" data-font="medium">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="แอปเรียนสวดบทบวชพระภิกษุและสามเณร แบบมหานิกายและธรรมยุต พร้อมเสียงและคำอ่าน">
+  <meta name="theme-color" content="#8B6B2E">
+  <title>เรียนสวดบวช – มหานิกาย / ธรรมยุต</title>
+  <link rel="manifest" href="pwa/manifest.json">
+  <link rel="icon" type="image/svg+xml" href="assets/icons/icon-192.svg">
+  <link rel="apple-touch-icon" href="assets/icons/icon-192.svg">
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+  <!-- Header -->
+  <header class="header">
+    <a href="index.html" class="header-logo">
+      <span class="logo-icon">📿</span>
+      <span>บรรพชาอุปสมบท</span>
+    </a>
+    <div class="header-spacer"></div>
+    <div class="header-actions">
+      <div class="font-size-group">
+        <button class="font-btn btn-sm" data-size="small" title="S">เล็ก</button>
+        <button class="font-btn btn-sm" data-size="medium" title="M">กลาง</button>
+        <button class="font-btn btn-sm" data-size="large" title="L">ใหญ่</button>
+      </div>
+      <button class="btn-icon" id="theme-toggle" title="สลับธีม">🌙</button>
+    </div>
+  </header>
+
+  <!-- Dhamma Tip -->
+  <div id="dhamma-tip"></div>
+
+  <!-- Page Content -->
+  <div class="container">
+    <div class="page-title">
+      <h1>บรรพชาอุปสมบท</h1>
+      <p class="subtitle">เลือกนิกาย</p>
+    </div>
+
+    <div class="selection-grid" id="nikaya-grid">
+      <a class="selection-card" data-nikaya="mahanikai" href="choose-type.html" id="card-mahanikai">
+        <span class="icon">🏛️</span>
+        <div class="title">มหานิกาย</div>
+        <div class="desc">โครงบทสวดและลำดับพิธีแบบมหานิกาย</div>
+      </a>
+      <a class="selection-card" data-nikaya="dhammayut" href="choose-type.html" id="card-dhammayut">
+        <span class="icon">⛩️</span>
+        <div class="title">ธรรมยุต</div>
+        <div class="desc">โครงบทสวดและลำดับพิธีแบบธรรมยุต</div>
+      </a>
+    </div>
+
+    <footer class="footer">
+      <p>บรรพชาอุปสมบท — มหานิกาย / ธรรมยุต</p>
+      <p>เนื้อหาเพื่อการศึกษาเท่านั้น 🙏</p>
+    </footer>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Save nikaya to localStorage when clicking
+      document.querySelectorAll('[data-nikaya]').forEach(card => {
+        card.addEventListener('click', (e) => {
+          e.preventDefault();
+          const nikaya = card.dataset.nikaya;
+          AppState.set('selectedNikaya', nikaya);
+          window.location.href = 'choose-type.html';
+        });
+      });
+    });
+  </script>
+</body>
+
+</html>
